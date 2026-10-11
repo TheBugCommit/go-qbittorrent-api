@@ -5,11 +5,13 @@ import (
 	"sync"
 )
 
+// Client is a qBittorrent Web API client. Create one with NewClient. A Client
+// is intended to be safe for concurrent use by multiple goroutines.
 type Client struct {
-	baseUrl    string
+	baseURL    string
 	httpClient *http.Client
 	username   string
 	password   string
-	apiKey     string // By default
+	apiKey     string // If set, requests are authenticated with "Authorization: Bearer".
 	mu         sync.Mutex
 }
