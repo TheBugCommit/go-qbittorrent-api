@@ -42,13 +42,27 @@ var (
 	// when an API key does not match the expected format (the qbt_ prefix
 	// followed by 28 alphanumeric characters).
 	ErrInvalidAPIKeyFormat = errors.New("qbittorrent: invalid api key format")
+
+	// ErrInvalidResponse is returned when a successful HTTP response cannot be
+	// interpreted, for example when its body is not valid JSON or exceeds the
+	// maximum accepted size.
+	ErrInvalidResponse = errors.New("qbittorrent: invalid response")
 )
 
+// newAPIError builds an *APIError and associates the sentinel error matching the
+// given HTTP status code, if any.
 func newAPIError(statusCode int, format string, args ...any) *APIError {
+	return newAPIErrorWithSentinel(statusCode, sentinelForStatus(statusCode), format, args...)
+}
+
+// newAPIErrorWithSentinel builds an *APIError with an explicit sentinel error.
+// It is used when a status code should map to a more specific sentinel, such as
+// mapping the HTTP 401 returned by the login endpoint to ErrInvalidCredentials.
+func newAPIErrorWithSentinel(statusCode int, sentinel error, format string, args ...any) *APIError {
 	return &APIError{
 		StatusCode: statusCode,
 		Message:    fmt.Sprintf(format, args...),
-		sentinel:   sentinelForStatus(statusCode),
+		sentinel:   sentinel,
 	}
 }
 
