@@ -8,8 +8,6 @@ import (
 	"net/url"
 )
 
-const apiBase = "/api/v2"
-
 // Login authenticates the client with the username and password configured
 // with WithLogin. It is a no-op when an API key is used, since API keys
 // authenticate every request on their own.
@@ -65,8 +63,4 @@ func (c *Client) Logout(ctx context.Context) error {
 	}
 
 	return c.requestJSON(ctx, http.MethodPost, buildPath("/auth/logout"), nil, nil, 0)
-}
-
-func buildPath(path string) string {
-	return apiBase + path
 }

@@ -2,8 +2,6 @@ package qbittorrent
 
 import (
 	"context"
-	"net/url"
-	"strings"
 
 	"github.com/TheBugCommit/go-qbittorrent-api/models"
 )
@@ -20,22 +18,12 @@ func (c *Client) GetCategories(ctx context.Context) (map[string]*models.Category
 
 // CreateCategory creates a new category.
 func (c *Client) CreateCategory(ctx context.Context, req models.CreateCategoryRequest) error {
-	params := url.Values{
-		"category": {req.Name},
-		"savePath": {req.SavePath},
-	}
-
-	return c.postRequest(ctx, buildPath("/torrents/createCategory"), params, nil)
+	return c.postRequest(ctx, buildPath("/torrents/createCategory"), req.ToValues(), nil)
 }
 
 // EditCategory changes the save path of an existing category.
 func (c *Client) EditCategory(ctx context.Context, req models.EditCategoryRequest) error {
-	params := url.Values{
-		"category": {req.Name},
-		"savePath": {req.SavePath},
-	}
-
-	return c.postRequest(ctx, buildPath("/torrents/editCategory"), params, nil)
+	return c.postRequest(ctx, buildPath("/torrents/editCategory"), req.ToValues(), nil)
 }
 
 // RemoveCategories removes the given categories. A request with no names is a
@@ -45,9 +33,5 @@ func (c *Client) RemoveCategories(ctx context.Context, req models.RemoveCategori
 		return nil
 	}
 
-	params := url.Values{
-		"categories": {strings.Join(req.Names, "\n")},
-	}
-
-	return c.postRequest(ctx, buildPath("/torrents/removeCategories"), params, nil)
+	return c.postRequest(ctx, buildPath("/torrents/removeCategories"), req.ToValues(), nil)
 }

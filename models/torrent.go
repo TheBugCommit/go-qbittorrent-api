@@ -1,5 +1,7 @@
 package models
 
+import "net/url"
+
 // AddTorrentRequest adds one or more torrents from magnet links or URLs.
 //
 // Optional fields are pointers so that "not set" is distinguishable from the
@@ -137,4 +139,168 @@ type TorrentProperties struct {
 	DownloadPath           string  `json:"download_path"`
 	InfohashV1             string  `json:"infohash_v1"`
 	InfohashV2             string  `json:"infohash_v2"`
+}
+
+// TorrentHashRequest identifies a single torrent by its hash. It is used by
+// endpoints that operate on one torrent, such as GetTorrentProperties.
+type TorrentHashRequest struct {
+	// Hash is the torrent hash (infohash v1 or v2).
+	Hash string
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *TorrentHashRequest) ToValues() url.Values {
+	values := url.Values{}
+	values.Set("hash", r.Hash)
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request. It is the inverse
+// of ToValues.
+func (r *TorrentHashRequest) FromValues(values url.Values) error {
+	r.Hash = values.Get("hash")
+
+	return nil
+}
+
+// Tag is a tag name as returned by the Web API.
+type Tag struct {
+	Name string `json:"name"`
+}
+
+// CreateTagRequest creates one or more tags.
+type CreateTagRequest struct {
+	// Tags are the tag names to create.
+	Tags []string
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *CreateTagRequest) ToValues() url.Values {
+	values := url.Values{}
+	setListParam(values, "tags", r.Tags, ",")
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request. It is the inverse
+// of ToValues.
+func (r *CreateTagRequest) FromValues(values url.Values) error {
+	r.Tags = listParam(values, "tags", ",")
+
+	return nil
+}
+
+// DeleteTagRequest deletes one or more tags.
+type DeleteTagRequest struct {
+	// Tags are the tag names to delete.
+	Tags []string
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *DeleteTagRequest) ToValues() url.Values {
+	values := url.Values{}
+	setListParam(values, "tags", r.Tags, ",")
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request. It is the inverse
+// of ToValues.
+func (r *DeleteTagRequest) FromValues(values url.Values) error {
+	r.Tags = listParam(values, "tags", ",")
+
+	return nil
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *AddTorrentRequest) ToValues() url.Values {
+	values := url.Values{}
+	setListParam(values, "urls", r.URLs, "\n")
+	setStringParam(values, "savepath", r.SavePath)
+	setStringParam(values, "category", r.Category)
+	setListParam(values, "tags", r.Tags, ",")
+	setBoolParam(values, "skip_checking", r.SkipChecking)
+	setBoolParam(values, "paused", r.Paused)
+	setBoolParam(values, "root_folder", r.RootFolder)
+	setStringParam(values, "rename", r.Rename)
+	setInt64Param(values, "dlLimit", r.DownloadLimit)
+	setInt64Param(values, "upLimit", r.UploadLimit)
+	setBoolParam(values, "sequentialDownload", r.SequentialDownload)
+	setBoolParam(values, "firstLastPiecePrio", r.FirstLastPiecePrio)
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request. It is the inverse
+// of ToValues.
+func (r *AddTorrentRequest) FromValues(values url.Values) error {
+	r.URLs = listParam(values, "urls", "\n")
+	r.SavePath = stringParam(values, "savepath")
+	r.Category = stringParam(values, "category")
+	r.Tags = listParam(values, "tags", ",")
+	r.Rename = stringParam(values, "rename")
+
+	var err error
+	if r.SkipChecking, err = boolParam(values, "skip_checking"); err != nil {
+		return err
+	}
+	if r.Paused, err = boolParam(values, "paused"); err != nil {
+		return err
+	}
+	if r.RootFolder, err = boolParam(values, "root_folder"); err != nil {
+		return err
+	}
+	if r.DownloadLimit, err = int64Param(values, "dlLimit"); err != nil {
+		return err
+	}
+	if r.UploadLimit, err = int64Param(values, "upLimit"); err != nil {
+		return err
+	}
+	if r.SequentialDownload, err = boolParam(values, "sequentialDownload"); err != nil {
+		return err
+	}
+	if r.FirstLastPiecePrio, err = boolParam(values, "firstLastPiecePrio"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *TorrentListRequest) ToValues() url.Values {
+	values := url.Values{}
+	setStringParam(values, "filter", r.Filter)
+	setStringParam(values, "category", r.Category)
+	setStringParam(values, "tag", r.Tag)
+	setListParam(values, "hashes", r.Hashes, "|")
+	setStringParam(values, "sort", r.Sort)
+	setBoolParam(values, "reverse", r.Reverse)
+	setIntParam(values, "limit", r.Limit)
+	setIntParam(values, "offset", r.Offset)
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request. It is the inverse
+// of ToValues.
+func (r *TorrentListRequest) FromValues(values url.Values) error {
+	r.Filter = stringParam(values, "filter")
+	r.Category = stringParam(values, "category")
+	r.Tag = stringParam(values, "tag")
+	r.Hashes = listParam(values, "hashes", "|")
+	r.Sort = stringParam(values, "sort")
+
+	var err error
+	if r.Reverse, err = boolParam(values, "reverse"); err != nil {
+		return err
+	}
+	if r.Limit, err = intParam(values, "limit"); err != nil {
+		return err
+	}
+	if r.Offset, err = intParam(values, "offset"); err != nil {
+		return err
+	}
+
+	return nil
 }

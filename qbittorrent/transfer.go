@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/TheBugCommit/go-qbittorrent-api/models"
@@ -63,9 +62,5 @@ func (c *Client) getTransferLimit(ctx context.Context, path string) (int64, erro
 }
 
 func (c *Client) setTransferLimit(ctx context.Context, path string, req models.SetTransferLimitRequest) error {
-	params := url.Values{
-		"limit": {strconv.FormatInt(req.Limit, 10)},
-	}
-
-	return c.postRequest(ctx, buildPath(path), params, nil)
+	return c.postRequest(ctx, buildPath(path), req.ToValues(), nil)
 }

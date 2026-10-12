@@ -2,9 +2,6 @@ package qbittorrent
 
 import (
 	"context"
-	"net/url"
-	"strconv"
-	"strings"
 
 	"github.com/TheBugCommit/go-qbittorrent-api/models"
 )
@@ -13,7 +10,7 @@ import (
 // TorrentListRequest returns every torrent.
 func (c *Client) GetTorrents(ctx context.Context, req models.TorrentListRequest) ([]models.Torrent, error) {
 	var torrents []models.Torrent
-	if err := c.getRequest(ctx, buildPath("/torrents/info"), torrentListValues(req), &torrents); err != nil {
+	if err := c.getRequest(ctx, buildPath("/torrents/info"), req.ToValues(), &torrents); err != nil {
 		return nil, err
 	}
 
@@ -22,10 +19,10 @@ func (c *Client) GetTorrents(ctx context.Context, req models.TorrentListRequest)
 
 // GetTorrentProperties returns the detailed properties of a single torrent.
 func (c *Client) GetTorrentProperties(ctx context.Context, hash string) (*models.TorrentProperties, error) {
-	params := url.Values{"hash": {hash}}
+	req := models.TorrentHashRequest{Hash: hash}
 
 	props := &models.TorrentProperties{}
-	if err := c.getRequest(ctx, buildPath("/torrents/properties"), params, props); err != nil {
+	if err := c.getRequest(ctx, buildPath("/torrents/properties"), req.ToValues(), props); err != nil {
 		return nil, err
 	}
 
@@ -35,79 +32,38 @@ func (c *Client) GetTorrentProperties(ctx context.Context, hash string) (*models
 // AddTorrent adds one or more torrents from URLs or magnet links. Uploading a
 // .torrent file is not supported yet.
 func (c *Client) AddTorrent(ctx context.Context, req models.AddTorrentRequest) error {
-	return c.postRequest(ctx, buildPath("/torrents/add"), addTorrentValues(req), nil)
+	return c.postRequest(ctx, buildPath("/torrents/add"), req.ToValues(), nil)
 }
 
-func torrentListValues(req models.TorrentListRequest) url.Values {
-	v := url.Values{}
-
-	if req.Filter != nil {
-		v.Set("filter", *req.Filter)
-	}
-	if req.Category != nil {
-		v.Set("category", *req.Category)
-	}
-	if req.Tag != nil {
-		v.Set("tag", *req.Tag)
-	}
-	if len(req.Hashes) > 0 {
-		v.Set("hashes", strings.Join(req.Hashes, "\n"))
-	}
-	if req.Sort != nil {
-		v.Set("sort", *req.Sort)
-	}
-	if req.Reverse != nil {
-		v.Set("reverse", strconv.FormatBool(*req.Reverse))
-	}
-	if req.Limit != nil {
-		v.Set("limit", strconv.Itoa(*req.Limit))
-	}
-	if req.Offset != nil {
-		v.Set("offset", strconv.Itoa(*req.Offset))
+// GetTags returns all qBittorrent client tags.
+//
+// The tags live under the torrents scope, so the endpoint is
+// /api/v2/torrents/tags and the response is a JSON array of tag names.
+func (c *Client) GetTags(ctx context.Context) ([]models.Tag, error) {
+	var tags []string
+	if err := c.getRequest(ctx, buildPath("/torrents/tags"), nil, &tags); err != nil {
+		return nil, err
 	}
 
-	return v
+	return convertToTags(tags), nil
 }
 
-func addTorrentValues(req models.AddTorrentRequest) url.Values {
-	v := url.Values{}
+// CreateTags creates one or more tags.
+func (c *Client) CreateTags(ctx context.Context, req models.CreateTagRequest) error {
+	return c.postRequest(ctx, buildPath("/torrents/createTags"), req.ToValues(), nil)
+}
 
-	if len(req.URLs) > 0 {
-		v.Set("urls", strings.Join(req.URLs, "\n"))
-	}
-	if req.SavePath != nil {
-		v.Set("savepath", *req.SavePath)
-	}
-	if req.Category != nil {
-		v.Set("category", *req.Category)
-	}
-	if len(req.Tags) > 0 {
-		v.Set("tags", strings.Join(req.Tags, ","))
-	}
-	if req.SkipChecking != nil {
-		v.Set("skip_checking", strconv.FormatBool(*req.SkipChecking))
-	}
-	if req.Paused != nil {
-		v.Set("paused", strconv.FormatBool(*req.Paused))
-	}
-	if req.RootFolder != nil {
-		v.Set("root_folder", strconv.FormatBool(*req.RootFolder))
-	}
-	if req.Rename != nil {
-		v.Set("rename", *req.Rename)
-	}
-	if req.DownloadLimit != nil {
-		v.Set("dlLimit", strconv.FormatInt(*req.DownloadLimit, 10))
-	}
-	if req.UploadLimit != nil {
-		v.Set("upLimit", strconv.FormatInt(*req.UploadLimit, 10))
-	}
-	if req.SequentialDownload != nil {
-		v.Set("sequentialDownload", strconv.FormatBool(*req.SequentialDownload))
-	}
-	if req.FirstLastPiecePrio != nil {
-		v.Set("firstLastPiecePrio", strconv.FormatBool(*req.FirstLastPiecePrio))
+// DeleteTags deletes one or more tags.
+func (c *Client) DeleteTags(ctx context.Context, req models.DeleteTagRequest) error {
+	return c.postRequest(ctx, buildPath("/torrents/deleteTags"), req.ToValues(), nil)
+}
+
+func convertToTags(names []string) []models.Tag {
+	tags := make([]models.Tag, len(names))
+
+	for i := range names {
+		tags[i] = models.Tag{Name: names[i]}
 	}
 
-	return v
+	return tags
 }
