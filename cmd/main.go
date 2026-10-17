@@ -127,6 +127,14 @@ func run() error {
 		return client.ResumeTorrents(ctx, models.TorrentHashesRequest{Hashes: []string{}})
 	})
 
+	reportErr(ctx, "RecheckTorrents", func(ctx context.Context) error {
+		return client.RecheckTorrents(ctx, models.TorrentHashesRequest{Hashes: []string{}})
+	})
+
+	reportErr(ctx, "ReannounceTorrents", func(ctx context.Context) error {
+		return client.ReannounceTorrents(ctx, models.TorrentHashesRequest{Hashes: []string{}})
+	})
+
 	if !*write {
 		fmt.Println("\nwrite operations skipped, pass -write to run them")
 		return nil

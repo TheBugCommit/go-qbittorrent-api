@@ -8,7 +8,7 @@ import (
 )
 
 //*
-//TODO: Sync, Delete, Reecheck, Reeanunnce,SetTorrentCategory, SetAutomaticTorrentManagment, AddTorrentTags,RemoveTorrentTags
+//TODO: Sync,SetTorrentCategory, SetAutomaticTorrentManagment, AddTorrentTags,RemoveTorrentTags
 
 // GetTorrents returns the torrents matching the given filters. A zero-value
 // TorrentListRequest returns every torrent.
@@ -73,4 +73,24 @@ func (c *Client) ResumeTorrents(ctx context.Context, req models.TorrentHashesReq
 	}
 
 	return c.postRequest(ctx, buildPath("/torrents/start"), val, nil)
+}
+
+// RecheckTorrents rechecks one or more torrents. Rechecks all torrents, without passing torrent hashes.
+func (c *Client) RecheckTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
+	val := req.ToValues()
+	if strings.TrimSpace(val.Get("hashes")) == "" {
+		val.Set("hashes", "all")
+	}
+
+	return c.postRequest(ctx, buildPath("/torrents/recheck"), val, nil)
+}
+
+// ReannounceTorrents reannounce one or more torrents. Reannounce all torrents, without passing torrent hashes.
+func (c *Client) ReannounceTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
+	val := req.ToValues()
+	if strings.TrimSpace(val.Get("hashes")) == "" {
+		val.Set("hashes", "all")
+	}
+
+	return c.postRequest(ctx, buildPath("/torrents/reannounce"), val, nil)
 }
