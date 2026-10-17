@@ -219,6 +219,12 @@ func run() error {
 		return client.CreateTags(ctx, models.CreateTagRequest{Tags: []string{*tag}})
 	})
 
+	reportErr(ctx, "SetAutoTMM", func(ctx context.Context) error {
+		return client.SetAutoTMM(ctx, models.SetAutoTMMRequest{
+			Enable: true,
+		})
+	})
+
 	reportErr(ctx, "Logout", client.Logout)
 
 	return nil

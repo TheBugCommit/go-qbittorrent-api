@@ -8,7 +8,7 @@ import (
 )
 
 //*
-//TODO: Sync,SetTorrentCategory, SetAutomaticTorrentManagment, AddTorrentTags,RemoveTorrentTags
+//TODO: Sync, SetAutomaticTorrentManagment, AddTorrentTags,RemoveTorrentTags
 
 // GetTorrents returns the torrents matching the given filters. A zero-value
 // TorrentListRequest returns every torrent.
@@ -103,4 +103,14 @@ func (c *Client) SetTorrentsCategory(ctx context.Context, req models.SetTorrents
 	}
 
 	return c.postRequest(ctx, buildPath("/torrents/setCategory"), val, nil)
+}
+
+// SetAutoTMM sets one or more automatic torrents management . Set all automatic torrents management, without passing torrent hashes.
+func (c *Client) SetAutoTMM(ctx context.Context, req models.SetAutoTMMRequest) error {
+	val := req.ToValues()
+	if strings.TrimSpace(val.Get("hashes")) == "" {
+		val.Set("hashes", "all")
+	}
+
+	return c.postRequest(ctx, buildPath("/torrents/setAutoManagement"), val, nil)
 }

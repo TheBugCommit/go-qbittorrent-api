@@ -174,6 +174,37 @@ type SetTorrentsCategoryRequest struct {
 	Category string
 }
 
+type SetAutoTMMRequest struct {
+	Hashes []string
+	Enable bool
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *SetAutoTMMRequest) ToValues() url.Values {
+	values := url.Values{}
+	values.Set("hashes", strings.Join(r.Hashes, "|"))
+	values.Set("enable", strconv.FormatBool(r.Enable))
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request.
+func (r *SetAutoTMMRequest) FromValues(values url.Values) error {
+	r.Hashes = strings.Split(values.Get("hashes"), "|")
+
+	val, err := boolParam(values, "enable")
+	if err != nil {
+		return err
+	}
+	if val != nil {
+		r.Enable = *val
+	} else {
+		r.Enable = false
+	}
+
+	return nil
+}
+
 // ToValues encodes the request into URL-form parameters.
 func (r *SetTorrentsCategoryRequest) ToValues() url.Values {
 	values := url.Values{}
