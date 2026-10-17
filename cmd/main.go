@@ -179,9 +179,11 @@ func run() error {
 
 		reportErr(ctx, "AddTorrent", func(ctx context.Context) error {
 			path := "/data/downloads"
+			autoTMM := false
 			return client.AddTorrent(ctx, models.AddTorrentRequest{
 				Files:    []string{*torrent},
 				SavePath: &path,
+				AutoTMM:  &autoTMM,
 			})
 		})
 	}

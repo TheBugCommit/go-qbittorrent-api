@@ -40,6 +40,12 @@ type AddTorrentRequest struct {
 	SequentialDownload *bool
 	// FirstLastPiecePrio prioritises the first and last pieces.
 	FirstLastPiecePrio *bool
+	// AutoTMM Whether Automatic Torrent Management should be used
+	AutoTMM *bool
+	// SeedingTimeLimit optional since 2.8.1 Set torrent seeding time limit. Unit in minutes
+	SeedingTimeLimit *int64
+	// RatioLimit optional since 2.8.1 Set torrent share ratio limit
+	RatioLimit *float64
 }
 
 // TorrentListRequest filters the torrents returned by GetTorrents. All fields
@@ -204,6 +210,9 @@ func (r *AddTorrentRequest) ToValues() url.Values {
 	setInt64Param(values, "upLimit", r.UploadLimit)
 	setBoolParam(values, "sequentialDownload", r.SequentialDownload)
 	setBoolParam(values, "firstLastPiecePrio", r.FirstLastPiecePrio)
+	setBoolParam(values, "autoTMM", r.AutoTMM)
+	setInt64Param(values, "seedingTimeLimit", r.SeedingTimeLimit)
+	setFloat64Param(values, "ratioLimit", r.RatioLimit)
 
 	return values
 }
@@ -237,6 +246,15 @@ func (r *AddTorrentRequest) FromValues(values url.Values) error {
 		return err
 	}
 	if r.FirstLastPiecePrio, err = boolParam(values, "firstLastPiecePrio"); err != nil {
+		return err
+	}
+	if r.AutoTMM, err = boolParam(values, "autoTMM"); err != nil {
+		return err
+	}
+	if r.SeedingTimeLimit, err = int64Param(values, "seedingTimeLimit"); err != nil {
+		return err
+	}
+	if r.RatioLimit, err = float64Param(values, "ratioLimit"); err != nil {
 		return err
 	}
 

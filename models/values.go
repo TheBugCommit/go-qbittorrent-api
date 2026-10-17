@@ -35,6 +35,13 @@ func setInt64Param(values url.Values, key string, value *int64) {
 	}
 }
 
+// setFloat64Param sets key to *value, skipping nil pointers.
+func setFloat64Param(values url.Values, key string, value *float64) {
+	if value != nil {
+		values.Set(key, strconv.FormatFloat(*value, 'f', -1, 64))
+	}
+}
+
 // setListParam sets key to the elements of value joined by sep. An empty slice
 // leaves key unset.
 func setListParam(values url.Values, key string, value []string, sep string) {
@@ -91,6 +98,20 @@ func int64Param(values url.Values, key string) (*int64, error) {
 	value, err := strconv.ParseInt(values.Get(key), 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("parse int64 %q: %w", key, err)
+	}
+
+	return &value, nil
+}
+
+// int64Param parses the value of key, or returns nil when key is absent.
+func float64Param(values url.Values, key string) (*float64, error) {
+	if !values.Has(key) {
+		return nil, nil
+	}
+
+	value, err := strconv.ParseFloat(values.Get(key), 64)
+	if err != nil {
+		return nil, fmt.Errorf("parse float64 %q: %w", key, err)
 	}
 
 	return &value, nil
