@@ -13,6 +13,8 @@ type AddTorrentRequest struct {
 	// URLs is the list of torrent URLs or magnet links. At least one is
 	// required.
 	URLs []string
+	// Files is the torrents file paths. If len(Files) > 0 then URLs is omitted.
+	Files []string
 	// SavePath is the download location for the torrent content.
 	SavePath *string
 	// Category is the category to assign.

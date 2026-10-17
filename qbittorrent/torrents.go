@@ -29,10 +29,16 @@ func (c *Client) GetTorrentProperties(ctx context.Context, hash string) (*models
 	return props, nil
 }
 
-// AddTorrent adds one or more torrents from URLs or magnet links. Uploading a
-// .torrent file is not supported yet.
+// AddTorrent adds one or more torrents from URLs o File paths or magnet links.
 func (c *Client) AddTorrent(ctx context.Context, req models.AddTorrentRequest) error {
-	return c.postRequest(ctx, buildPath("/torrents/add"), req.ToValues(), nil)
+	uri := buildPath("/torrents/add")
+
+	if len(req.Files) > 0 {
+		return c.postFileRequest(ctx, uri, "torrents", req.Files, req.ToValues())
+
+	}
+
+	return c.postRequest(ctx, uri, req.ToValues(), nil)
 }
 
 // GetTags returns all qBittorrent client tags.

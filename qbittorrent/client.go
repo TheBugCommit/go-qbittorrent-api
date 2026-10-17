@@ -1,14 +1,18 @@
 package qbittorrent
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -175,6 +179,19 @@ func WithReferer(referer string) Option {
 	}
 }
 
+func (c *Client) setHeaders(req *http.Request, contentType string) {
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	req.Header.Set("User-Agent", userAgent)
+	if c.config.referer != "" {
+		req.Header.Set("Referer", c.config.referer)
+	}
+	if c.auth.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+c.auth.apiKey)
+	}
+}
+
 // newRequest builds an HTTP request for the given API URI. GET parameters are
 // sent in the query string and POST parameters in a form-encoded body.
 func (c *Client) newRequest(ctx context.Context, method, uri string, val url.Values) (*http.Request, error) {
@@ -183,8 +200,10 @@ func (c *Client) newRequest(ctx context.Context, method, uri string, val url.Val
 	}
 
 	var body io.Reader
+	var contentType string
 	if method == http.MethodPost {
 		body = strings.NewReader(val.Encode())
+		contentType = "application/x-www-form-urlencoded"
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, uri, body)
@@ -192,20 +211,28 @@ func (c *Client) newRequest(ctx context.Context, method, uri string, val url.Val
 		return nil, err
 	}
 
-	if method == http.MethodPost {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	} else {
+	if method != http.MethodPost {
 		req.URL.RawQuery = val.Encode()
 	}
 
-	req.Header.Set("User-Agent", userAgent)
-	if c.config.referer != "" {
-		req.Header.Set("Referer", c.config.referer)
-	}
-	if c.auth.apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+c.auth.apiKey)
+	c.setHeaders(req, contentType)
+
+	return req, nil
+}
+
+// newMultipartRequest builds a POST multipart/form-data request with a file.
+func (c *Client) newMultipartRequest(ctx context.Context, uri string, fieldName string, filesPaths []string, val url.Values) (*http.Request, error) {
+	data, contentType, err := buildMultipart(fieldName, filesPaths, val)
+	if err != nil {
+		return nil, err
 	}
 
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, uri, bytes.NewReader(data.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+
+	c.setHeaders(req, contentType)
 	return req, nil
 }
 
@@ -272,6 +299,16 @@ func (c *Client) postRequest(ctx context.Context, uri string, val url.Values, v 
 	return c.requestJSON(ctx, http.MethodPost, uri, val, v, defaultRetries)
 }
 
+func (c *Client) postFileRequest(ctx context.Context, uri, fieldName string, filesPaths []string, val url.Values) error {
+	req, err := c.newMultipartRequest(ctx, c.config.url+uri, fieldName, filesPaths, val)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.send(ctx, req, defaultRetries)
+	return err
+}
+
 // requestJSON performs a request and decodes a JSON response into v. A nil v or
 // an empty body is treated as success.
 func (c *Client) requestJSON(ctx context.Context, method, uri string, val url.Values, v any, retries int) error {
@@ -309,6 +346,51 @@ func (c *Client) requestText(ctx context.Context, method, uri string, val url.Va
 	}
 
 	return strings.TrimSpace(string(data)), nil
+}
+
+func buildMultipart(fieldName string, paths []string, val url.Values) (*bytes.Buffer, string, error) {
+	buf := &bytes.Buffer{}
+	mpw := multipart.NewWriter(buf)
+	defer func() { _ = mpw.Close() }()
+
+	for _, path := range paths {
+		if err := attachFile(mpw, fieldName, path); err != nil {
+			return nil, "", err
+		}
+	}
+
+	for key, values := range val {
+		for _, value := range values {
+			if err := mpw.WriteField(key, value); err != nil {
+				return nil, "", err
+			}
+		}
+	}
+
+	if err := mpw.Close(); err != nil {
+		return nil, "", err
+	}
+
+	return buf, mpw.FormDataContentType(), nil
+}
+
+func attachFile(mpw *multipart.Writer, fieldName string, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = file.Close() }()
+
+	fileWriter, err := mpw.CreateFormFile(fieldName, filepath.Base(path))
+	if err != nil {
+		return err
+	}
+
+	if _, err = io.Copy(fileWriter, file); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func isUnauthorized(status int) bool {
