@@ -169,6 +169,28 @@ type DeleteTorrentsRequest struct {
 	DeleteFiles bool
 }
 
+type SetTorrentsCategoryRequest struct {
+	Hashes   []string
+	Category string
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *SetTorrentsCategoryRequest) ToValues() url.Values {
+	values := url.Values{}
+	values.Set("hashes", strings.Join(r.Hashes, "|"))
+	values.Set("category", r.Category)
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request.
+func (r *SetTorrentsCategoryRequest) FromValues(values url.Values) error {
+	r.Hashes = strings.Split(values.Get("hashes"), "|")
+	r.Category = values.Get("category")
+
+	return nil
+}
+
 // ToValues encodes the request into URL-form parameters.
 func (r *DeleteTorrentsRequest) ToValues() url.Values {
 	values := url.Values{}

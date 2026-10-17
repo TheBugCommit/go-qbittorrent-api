@@ -154,11 +154,11 @@ func run() error {
 			SavePath: "/tmp/go-qbittorrent-api-test-edited",
 		})
 	})
-	reportErr(ctx, "RemoveCategories", func(ctx context.Context) error {
+	/*reportErr(ctx, "RemoveCategories", func(ctx context.Context) error {
 		return client.RemoveCategories(ctx, models.RemoveCategoriesRequest{
 			Names: []string{*category},
 		})
-	})
+	})**/
 
 	// The limits are set back to their current value, so the endpoint is
 	// exercised without changing the server configuration.
@@ -198,6 +198,14 @@ func run() error {
 		reportErr(ctx, "DeleteTorrents", func(ctx context.Context) error {
 			return client.DeleteTorrents(ctx, models.DeleteTorrentsRequest{
 				DeleteFiles: false,
+			})
+		})
+	}
+
+	if category != nil && *category != "" {
+		reportErr(ctx, "SetTorrentsCategory", func(ctx context.Context) error {
+			return client.SetTorrentsCategory(ctx, models.SetTorrentsCategoryRequest{
+				Category: *category,
 			})
 		})
 	}

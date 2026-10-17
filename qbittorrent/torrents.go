@@ -94,3 +94,13 @@ func (c *Client) ReannounceTorrents(ctx context.Context, req models.TorrentHashe
 
 	return c.postRequest(ctx, buildPath("/torrents/reannounce"), val, nil)
 }
+
+// SetTorrentsCategory sets one or more torrents category. Set all torrents category, without passing torrent hashes.
+func (c *Client) SetTorrentsCategory(ctx context.Context, req models.SetTorrentsCategoryRequest) error {
+	val := req.ToValues()
+	if strings.TrimSpace(val.Get("hashes")) == "" {
+		val.Set("hashes", "all")
+	}
+
+	return c.postRequest(ctx, buildPath("/torrents/setCategory"), val, nil)
+}
