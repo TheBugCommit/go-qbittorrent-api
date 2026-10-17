@@ -33,8 +33,8 @@ func (c *Client) GetTorrentProperties(ctx context.Context, hash string) (*models
 	return props, nil
 }
 
-// AddTorrent adds one or more torrents from URLs o File paths or magnet links.
-func (c *Client) AddTorrent(ctx context.Context, req models.AddTorrentRequest) error {
+// AddTorrents adds one or more torrents from URLs o File paths or magnet links.
+func (c *Client) AddTorrents(ctx context.Context, req models.AddTorrentsRequest) error {
 	uri := buildPath("/torrents/add")
 
 	if len(req.Files) > 0 {
@@ -43,6 +43,16 @@ func (c *Client) AddTorrent(ctx context.Context, req models.AddTorrentRequest) e
 	}
 
 	return c.postRequest(ctx, uri, req.ToValues(), nil)
+}
+
+// DeleteTorrents deletes one or more torrents. Deletes all torrents, without passing torrent hashes.
+func (c *Client) DeleteTorrents(ctx context.Context, req models.DeleteTorrentsRequest) error {
+	val := req.ToValues()
+	if strings.TrimSpace(val.Get("hashes")) == "" {
+		val.Set("hashes", "all")
+	}
+
+	return c.postRequest(ctx, buildPath("/torrents/delete"), val, nil)
 }
 
 // PauseTorrents pause one or more torrents. Pause all torrents, without passing torrent hashes.

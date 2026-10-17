@@ -2,17 +2,18 @@ package models
 
 import (
 	"net/url"
+	"strconv"
 	"strings"
 )
 
-// AddTorrentRequest adds one or more torrents from magnet links or URLs.
+// AddTorrentsRequest adds one or more torrents from magnet links or URLs.
 //
 // Optional fields are pointers so that "not set" is distinguishable from the
 // zero value (e.g. Paused = false is meaningful).
 //
 // Uploading a .torrent file is not supported by this request; only URLs and
 // magnet links are sent.
-type AddTorrentRequest struct {
+type AddTorrentsRequest struct {
 	// URLs is the list of torrent URLs or magnet links. At least one is
 	// required.
 	URLs []string
@@ -163,6 +164,37 @@ type TorrentHashesRequest struct {
 	Hashes []string
 }
 
+type DeleteTorrentsRequest struct {
+	Hashes      []string
+	DeleteFiles bool
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *DeleteTorrentsRequest) ToValues() url.Values {
+	values := url.Values{}
+	values.Set("hashes", strings.Join(r.Hashes, "|"))
+	values.Set("deleteFiles", strconv.FormatBool(r.DeleteFiles))
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request.
+func (r *DeleteTorrentsRequest) FromValues(values url.Values) error {
+	r.Hashes = strings.Split(values.Get("hashes"), "|")
+
+	val, err := boolParam(values, "deleteFiles")
+	if err != nil {
+		return err
+	}
+	if val != nil {
+		r.DeleteFiles = *val
+	} else {
+		r.DeleteFiles = false
+	}
+
+	return nil
+}
+
 // ToValues encodes the request into URL-form parameters.
 func (r *TorrentHashesRequest) ToValues() url.Values {
 	values := url.Values{}
@@ -196,7 +228,7 @@ func (r *TorrentHashRequest) FromValues(values url.Values) error {
 }
 
 // ToValues encodes the request into URL-form parameters.
-func (r *AddTorrentRequest) ToValues() url.Values {
+func (r *AddTorrentsRequest) ToValues() url.Values {
 	values := url.Values{}
 	setListParam(values, "urls", r.URLs, "\n")
 	setStringParam(values, "savepath", r.SavePath)
@@ -219,7 +251,7 @@ func (r *AddTorrentRequest) ToValues() url.Values {
 
 // FromValues decodes URL-form parameters into the request. It is the inverse
 // of ToValues.
-func (r *AddTorrentRequest) FromValues(values url.Values) error {
+func (r *AddTorrentsRequest) FromValues(values url.Values) error {
 	r.URLs = listParam(values, "urls", "\n")
 	r.SavePath = stringParam(values, "savepath")
 	r.Category = stringParam(values, "category")

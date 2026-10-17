@@ -177,13 +177,19 @@ func run() error {
 			})
 		})*/
 
-		reportErr(ctx, "AddTorrent", func(ctx context.Context) error {
+		reportErr(ctx, "AddTorrents", func(ctx context.Context) error {
 			path := "/data/downloads"
 			autoTMM := false
-			return client.AddTorrent(ctx, models.AddTorrentRequest{
+			return client.AddTorrents(ctx, models.AddTorrentsRequest{
 				Files:    []string{*torrent},
 				SavePath: &path,
 				AutoTMM:  &autoTMM,
+			})
+		})
+
+		reportErr(ctx, "DeleteTorrents", func(ctx context.Context) error {
+			return client.DeleteTorrents(ctx, models.DeleteTorrentsRequest{
+				DeleteFiles: false,
 			})
 		})
 	}
