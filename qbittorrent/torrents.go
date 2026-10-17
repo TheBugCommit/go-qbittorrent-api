@@ -45,6 +45,7 @@ func (c *Client) AddTorrent(ctx context.Context, req models.AddTorrentRequest) e
 	return c.postRequest(ctx, uri, req.ToValues(), nil)
 }
 
+// PauseTorrents pause one or more torrents. Pause all torrents, without passing torrent hashes.
 func (c *Client) PauseTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
 	val := req.ToValues()
 	if strings.TrimSpace(val.Get("hashes")) == "" {
@@ -54,6 +55,7 @@ func (c *Client) PauseTorrents(ctx context.Context, req models.TorrentHashesRequ
 	return c.postRequest(ctx, buildPath("/torrents/stop"), val, nil)
 }
 
+// ResumeTorrents resume one or more torrents. Resume all torrents, without passing torrent hashes.
 func (c *Client) ResumeTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
 	val := req.ToValues()
 	if strings.TrimSpace(val.Get("hashes")) == "" {
