@@ -119,6 +119,14 @@ func run() error {
 		fmt.Printf("  - %-20s skipped (no torrents)\n", "GetTorrentProperties")
 	}
 
+	reportErr(ctx, "PauseTorrents", func(ctx context.Context) error {
+		return client.PauseTorrents(ctx, models.TorrentHashesRequest{Hashes: []string{}})
+	})
+
+	reportErr(ctx, "ResumeTorrents", func(ctx context.Context) error {
+		return client.ResumeTorrents(ctx, models.TorrentHashesRequest{Hashes: []string{}})
+	})
+
 	if !*write {
 		fmt.Println("\nwrite operations skipped, pass -write to run them")
 		return nil
