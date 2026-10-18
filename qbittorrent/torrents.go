@@ -8,9 +8,6 @@ import (
 	"github.com/TheBugCommit/go-qbittorrent-api/models"
 )
 
-//*
-//TODO: Sync,RemoveTorrentTags
-
 // GetTorrents returns the torrents matching the given filters. A zero-value
 // TorrentListRequest returns every torrent.
 func (c *Client) GetTorrents(ctx context.Context, req models.TorrentListRequest) ([]models.Torrent, error) {

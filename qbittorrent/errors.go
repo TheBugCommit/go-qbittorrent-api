@@ -25,14 +25,25 @@ func (e *APIError) Unwrap() error {
 }
 
 var (
+	// ErrBadRequest is returned when the server responds with HTTP 400.
+	ErrBadRequest = errors.New("qbittorrent: bad request")
+
 	// ErrUnauthorized is returned when the server responds with HTTP 401.
 	ErrUnauthorized = errors.New("qbittorrent: unauthorized")
+
 	// ErrForbidden is returned when the server responds with HTTP 403. This is
-	// the status qBittorrent usually returns for authentication failures.
+	// the status qBittorrent usually returns for authentication failures or IP bans.
 	ErrForbidden = errors.New("qbittorrent: forbidden")
 
 	// ErrNotFound is returned when the server responds with HTTP 404.
 	ErrNotFound = errors.New("qbittorrent: not found")
+
+	// ErrConflict is returned when the server responds with HTTP 409.
+	ErrConflict = errors.New("qbittorrent: conflict")
+
+	// ErrUnsupportedMediaType is returned when the server responds with HTTP 415,
+	// for example when uploading an invalid .torrent file.
+	ErrUnsupportedMediaType = errors.New("qbittorrent: unsupported media type")
 
 	// ErrInvalidCredentials is returned by Login when the server rejects the
 	// provided username and password.
@@ -68,12 +79,18 @@ func newAPIErrorWithSentinel(statusCode int, sentinel error, format string, args
 
 func sentinelForStatus(statusCode int) error {
 	switch statusCode {
+	case http.StatusBadRequest:
+		return ErrBadRequest
 	case http.StatusUnauthorized:
 		return ErrUnauthorized
 	case http.StatusForbidden:
 		return ErrForbidden
 	case http.StatusNotFound:
 		return ErrNotFound
+	case http.StatusConflict:
+		return ErrConflict
+	case http.StatusUnsupportedMediaType:
+		return ErrUnsupportedMediaType
 	default:
 		return nil
 	}

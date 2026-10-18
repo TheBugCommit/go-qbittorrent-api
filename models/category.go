@@ -2,10 +2,15 @@ package models
 
 import "net/url"
 
-// Category is a torrent category as returned by the Web API.
+// Category represents a torrent category configuration.
 type Category struct {
-	Name     string `json:"name"`
-	SavePath string `json:"savePath"`
+	Name                     string  `json:"name"`
+	SavePath                 string  `json:"savePath"`
+	DownloadPath             *string `json:"download_path"`
+	InactiveSeedingTimeLimit int64   `json:"inactive_seeding_time_limit"`
+	RatioLimit               float64 `json:"ratio_limit"`
+	SeedingTimeLimit         int64   `json:"seeding_time_limit"`
+	ShareLimitAction         string  `json:"share_limit_action"`
 }
 
 // CreateCategoryRequest creates a new category.
