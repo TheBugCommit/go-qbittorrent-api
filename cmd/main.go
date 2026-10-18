@@ -215,9 +215,9 @@ func run() error {
 		return client.CreateTags(ctx, models.CreateTagRequest{Tags: []string{*tag}})
 	})
 
-	reportErr(ctx, "DeleteTags", func(ctx context.Context) error {
+	/*reportErr(ctx, "DeleteTags", func(ctx context.Context) error {
 		return client.CreateTags(ctx, models.CreateTagRequest{Tags: []string{*tag}})
-	})
+	})*/
 
 	reportErr(ctx, "SetAutoTMM", func(ctx context.Context) error {
 		return client.SetAutoTMM(ctx, models.SetAutoTMMRequest{
@@ -229,6 +229,10 @@ func run() error {
 		return client.AddTagsToTorrents(ctx, models.AddTagsToTorrentsRequest{
 			Tags: []string{*tag},
 		})
+	})
+
+	reportErr(ctx, "RemoveTorrentTags", func(ctx context.Context) error {
+		return client.RemoveTorrentTags(ctx, models.RemoveTorrentTagsRequest{})
 	})
 
 	reportErr(ctx, "Logout", client.Logout)

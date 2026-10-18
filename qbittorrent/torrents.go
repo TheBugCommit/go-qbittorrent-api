@@ -9,7 +9,7 @@ import (
 )
 
 //*
-//TODO: Sync, AddTorrentTags,RemoveTorrentTags
+//TODO: Sync,RemoveTorrentTags
 
 // GetTorrents returns the torrents matching the given filters. A zero-value
 // TorrentListRequest returns every torrent.
@@ -102,12 +102,20 @@ func (c *Client) SetAutoTMM(ctx context.Context, req models.SetAutoTMMRequest) e
 	return c.postRequest(ctx, buildPath("/torrents/setAutoManagement"), val, nil)
 }
 
-// AddTagsToTorrents adds one or more tags to torrents. Set all tags, without passing torrent hashes.
+// AddTagsToTorrents adds one or more tags to torrents. Set tags to all torrents, without passing torrent hashes.
 func (c *Client) AddTagsToTorrents(ctx context.Context, req models.AddTagsToTorrentsRequest) error {
 	val := req.ToValues()
 	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/addTags"), val, nil)
+}
+
+// RemoveTorrentTags remove one or more tags from torrents. Remove tags from all torrents, without passing torrent hashes.
+func (c *Client) RemoveTorrentTags(ctx context.Context, req models.RemoveTorrentTagsRequest) error {
+	val := req.ToValues()
+	c.replaceHashesParam(&val)
+
+	return c.postRequest(ctx, buildPath("/torrents/removeTags"), val, nil)
 }
 
 func (c *Client) replaceHashesParam(val *url.Values) {

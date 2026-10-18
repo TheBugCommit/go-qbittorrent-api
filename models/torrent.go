@@ -182,6 +182,28 @@ type AddTagsToTorrentsRequest struct {
 	Tags   []string
 }
 
+type RemoveTorrentTagsRequest struct {
+	Hashes []string
+	Tags   []string
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *RemoveTorrentTagsRequest) ToValues() url.Values {
+	values := url.Values{}
+	setListParam(values, "hashes", r.Hashes, "|")
+	setListParam(values, "tags", r.Tags, ",")
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request.
+func (r *RemoveTorrentTagsRequest) FromValues(values url.Values) error {
+	r.Hashes = listParam(values, "hashes", "|")
+	r.Tags = listParam(values, "tags", ",")
+
+	return nil
+}
+
 // ToValues encodes the request into URL-form parameters.
 func (r *AddTagsToTorrentsRequest) ToValues() url.Values {
 	values := url.Values{}
