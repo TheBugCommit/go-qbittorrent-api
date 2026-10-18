@@ -225,6 +225,12 @@ func run() error {
 		})
 	})
 
+	reportErr(ctx, "AddTagsToTorrent", func(ctx context.Context) error {
+		return client.AddTagsToTorrents(ctx, models.AddTagsToTorrentsRequest{
+			Tags: []string{*tag},
+		})
+	})
+
 	reportErr(ctx, "Logout", client.Logout)
 
 	return nil

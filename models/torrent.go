@@ -2,8 +2,6 @@ package models
 
 import (
 	"net/url"
-	"strconv"
-	"strings"
 )
 
 // AddTorrentsRequest adds one or more torrents from magnet links or URLs.
@@ -179,18 +177,40 @@ type SetAutoTMMRequest struct {
 	Enable bool
 }
 
+type AddTagsToTorrentsRequest struct {
+	Hashes []string
+	Tags   []string
+}
+
+// ToValues encodes the request into URL-form parameters.
+func (r *AddTagsToTorrentsRequest) ToValues() url.Values {
+	values := url.Values{}
+	setListParam(values, "hashes", r.Hashes, "|")
+	setListParam(values, "tags", r.Tags, ",")
+
+	return values
+}
+
+// FromValues decodes URL-form parameters into the request.
+func (r *AddTagsToTorrentsRequest) FromValues(values url.Values) error {
+	r.Hashes = listParam(values, "hashes", "|")
+	r.Tags = listParam(values, "tags", ",")
+
+	return nil
+}
+
 // ToValues encodes the request into URL-form parameters.
 func (r *SetAutoTMMRequest) ToValues() url.Values {
 	values := url.Values{}
-	values.Set("hashes", strings.Join(r.Hashes, "|"))
-	values.Set("enable", strconv.FormatBool(r.Enable))
+	setListParam(values, "hashes", r.Hashes, "|")
+	setBoolParam(values, "enable", &r.Enable)
 
 	return values
 }
 
 // FromValues decodes URL-form parameters into the request.
 func (r *SetAutoTMMRequest) FromValues(values url.Values) error {
-	r.Hashes = strings.Split(values.Get("hashes"), "|")
+	r.Hashes = listParam(values, "hashes", "|")
 
 	val, err := boolParam(values, "enable")
 	if err != nil {
@@ -208,16 +228,16 @@ func (r *SetAutoTMMRequest) FromValues(values url.Values) error {
 // ToValues encodes the request into URL-form parameters.
 func (r *SetTorrentsCategoryRequest) ToValues() url.Values {
 	values := url.Values{}
-	values.Set("hashes", strings.Join(r.Hashes, "|"))
-	values.Set("category", r.Category)
+	setListParam(values, "hashes", r.Hashes, "|")
+	setStringParam(values, "category", &r.Category)
 
 	return values
 }
 
 // FromValues decodes URL-form parameters into the request.
 func (r *SetTorrentsCategoryRequest) FromValues(values url.Values) error {
-	r.Hashes = strings.Split(values.Get("hashes"), "|")
-	r.Category = values.Get("category")
+	r.Hashes = listParam(values, "hashes", "|")
+	r.Category = *stringParam(values, "category")
 
 	return nil
 }
@@ -225,15 +245,15 @@ func (r *SetTorrentsCategoryRequest) FromValues(values url.Values) error {
 // ToValues encodes the request into URL-form parameters.
 func (r *DeleteTorrentsRequest) ToValues() url.Values {
 	values := url.Values{}
-	values.Set("hashes", strings.Join(r.Hashes, "|"))
-	values.Set("deleteFiles", strconv.FormatBool(r.DeleteFiles))
+	setListParam(values, "hashes", r.Hashes, "|")
+	setBoolParam(values, "delete", &r.DeleteFiles)
 
 	return values
 }
 
 // FromValues decodes URL-form parameters into the request.
 func (r *DeleteTorrentsRequest) FromValues(values url.Values) error {
-	r.Hashes = strings.Split(values.Get("hashes"), "|")
+	r.Hashes = listParam(values, "hashes", "|")
 
 	val, err := boolParam(values, "deleteFiles")
 	if err != nil {
@@ -251,7 +271,7 @@ func (r *DeleteTorrentsRequest) FromValues(values url.Values) error {
 // ToValues encodes the request into URL-form parameters.
 func (r *TorrentHashesRequest) ToValues() url.Values {
 	values := url.Values{}
-	values.Set("hashes", strings.Join(r.Hashes, "|"))
+	setListParam(values, "hashes", r.Hashes, "|")
 
 	return values
 }
@@ -259,7 +279,7 @@ func (r *TorrentHashesRequest) ToValues() url.Values {
 // FromValues decodes URL-form parameters into the request. It is the inverse
 // of ToValues.
 func (r *TorrentHashesRequest) FromValues(values url.Values) error {
-	r.Hashes = strings.Split(values.Get("hashes"), "|")
+	r.Hashes = listParam(values, "hashes", "|")
 
 	return nil
 }
@@ -267,7 +287,7 @@ func (r *TorrentHashesRequest) FromValues(values url.Values) error {
 // ToValues encodes the request into URL-form parameters.
 func (r *TorrentHashRequest) ToValues() url.Values {
 	values := url.Values{}
-	values.Set("hash", r.Hash)
+	setStringParam(values, "hash", &r.Hash)
 
 	return values
 }
@@ -275,7 +295,7 @@ func (r *TorrentHashRequest) ToValues() url.Values {
 // FromValues decodes URL-form parameters into the request. It is the inverse
 // of ToValues.
 func (r *TorrentHashRequest) FromValues(values url.Values) error {
-	r.Hash = values.Get("hash")
+	r.Hash = *stringParam(values, "hash")
 
 	return nil
 }

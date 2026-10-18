@@ -2,13 +2,14 @@ package qbittorrent
 
 import (
 	"context"
+	"net/url"
 	"strings"
 
 	"github.com/TheBugCommit/go-qbittorrent-api/models"
 )
 
 //*
-//TODO: Sync, SetAutomaticTorrentManagment, AddTorrentTags,RemoveTorrentTags
+//TODO: Sync, AddTorrentTags,RemoveTorrentTags
 
 // GetTorrents returns the torrents matching the given filters. A zero-value
 // TorrentListRequest returns every torrent.
@@ -48,9 +49,7 @@ func (c *Client) AddTorrents(ctx context.Context, req models.AddTorrentsRequest)
 // DeleteTorrents deletes one or more torrents. Deletes all torrents, without passing torrent hashes.
 func (c *Client) DeleteTorrents(ctx context.Context, req models.DeleteTorrentsRequest) error {
 	val := req.ToValues()
-	if strings.TrimSpace(val.Get("hashes")) == "" {
-		val.Set("hashes", "all")
-	}
+	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/delete"), val, nil)
 }
@@ -58,9 +57,7 @@ func (c *Client) DeleteTorrents(ctx context.Context, req models.DeleteTorrentsRe
 // PauseTorrents pause one or more torrents. Pause all torrents, without passing torrent hashes.
 func (c *Client) PauseTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
 	val := req.ToValues()
-	if strings.TrimSpace(val.Get("hashes")) == "" {
-		val.Set("hashes", "all")
-	}
+	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/stop"), val, nil)
 }
@@ -68,9 +65,7 @@ func (c *Client) PauseTorrents(ctx context.Context, req models.TorrentHashesRequ
 // ResumeTorrents resume one or more torrents. Resume all torrents, without passing torrent hashes.
 func (c *Client) ResumeTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
 	val := req.ToValues()
-	if strings.TrimSpace(val.Get("hashes")) == "" {
-		val.Set("hashes", "all")
-	}
+	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/start"), val, nil)
 }
@@ -78,9 +73,7 @@ func (c *Client) ResumeTorrents(ctx context.Context, req models.TorrentHashesReq
 // RecheckTorrents rechecks one or more torrents. Rechecks all torrents, without passing torrent hashes.
 func (c *Client) RecheckTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
 	val := req.ToValues()
-	if strings.TrimSpace(val.Get("hashes")) == "" {
-		val.Set("hashes", "all")
-	}
+	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/recheck"), val, nil)
 }
@@ -88,9 +81,7 @@ func (c *Client) RecheckTorrents(ctx context.Context, req models.TorrentHashesRe
 // ReannounceTorrents reannounce one or more torrents. Reannounce all torrents, without passing torrent hashes.
 func (c *Client) ReannounceTorrents(ctx context.Context, req models.TorrentHashesRequest) error {
 	val := req.ToValues()
-	if strings.TrimSpace(val.Get("hashes")) == "" {
-		val.Set("hashes", "all")
-	}
+	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/reannounce"), val, nil)
 }
@@ -98,9 +89,7 @@ func (c *Client) ReannounceTorrents(ctx context.Context, req models.TorrentHashe
 // SetTorrentsCategory sets one or more torrents category. Set all torrents category, without passing torrent hashes.
 func (c *Client) SetTorrentsCategory(ctx context.Context, req models.SetTorrentsCategoryRequest) error {
 	val := req.ToValues()
-	if strings.TrimSpace(val.Get("hashes")) == "" {
-		val.Set("hashes", "all")
-	}
+	c.replaceHashesParam(&val)
 
 	return c.postRequest(ctx, buildPath("/torrents/setCategory"), val, nil)
 }
@@ -108,9 +97,21 @@ func (c *Client) SetTorrentsCategory(ctx context.Context, req models.SetTorrents
 // SetAutoTMM sets one or more automatic torrents management . Set all automatic torrents management, without passing torrent hashes.
 func (c *Client) SetAutoTMM(ctx context.Context, req models.SetAutoTMMRequest) error {
 	val := req.ToValues()
+	c.replaceHashesParam(&val)
+
+	return c.postRequest(ctx, buildPath("/torrents/setAutoManagement"), val, nil)
+}
+
+// AddTagsToTorrents adds one or more tags to torrents. Set all tags, without passing torrent hashes.
+func (c *Client) AddTagsToTorrents(ctx context.Context, req models.AddTagsToTorrentsRequest) error {
+	val := req.ToValues()
+	c.replaceHashesParam(&val)
+
+	return c.postRequest(ctx, buildPath("/torrents/addTags"), val, nil)
+}
+
+func (c *Client) replaceHashesParam(val *url.Values) {
 	if strings.TrimSpace(val.Get("hashes")) == "" {
 		val.Set("hashes", "all")
 	}
-
-	return c.postRequest(ctx, buildPath("/torrents/setAutoManagement"), val, nil)
 }
